@@ -22,6 +22,13 @@ __version__ = '0.1'
 # separator to use 
 SEP = "," 
 
+
+# fake google id (looks like it is a 16 elements hex)
+# Adapted from http://blog.venthur.de/index.php/2010/01/query-google-scholar-using-python/
+google_id = hashlib.md5(str(random.random())).hexdigest()[:16]
+HEADERS = {'User-Agent' : 'Mozilla/5.0',
+        'Cookie' : 'GSP=ID=%s:CF=4' % google_id }
+
 # See ./notes.txt for notes on who wrote this and license.  
 
 class Article():
@@ -38,7 +45,8 @@ class Article():
                       'url_versions':  [None, 'Versions list',  5],
                       'year':          [None, 'Year',           6], 
                       'abstract':      [None, 'Abstract',       7], 
-                      'url_bib':       [None, 'URL to Bibtext', 8]}
+                      'url_bib':       [None, 'URL to BibTeX',  8], 
+                      'bibtex_entry':  [None, 'BibTeX entry',   9]}
 
     def __getitem__(self, key):
         if key in self.attrs:
@@ -154,6 +162,10 @@ class ScholarParser():
 
             if tag.get('href').startswith('/scholar.bib'):
                 self.article['url_bib'] = self._path2url(tag.get('href'))
+                if self.article['url_bib'] != '': 
+                    req = urllib2.Request(url = self.article['url_bib'], headers = HEADERS)
+                    resource = urllib2.urlopen(req)
+                    self.article['bibtex_entry'] = resource.read()
 
 
     @staticmethod
@@ -276,12 +288,6 @@ class ScholarQuerier():
         This method initiates a query with subsequent parsing of the
         response.
         """
-        # fake google id (looks like it is a 16 elements hex)
-        # Adapted from http://blog.venthur.de/index.php/2010/01/query-google-scholar-using-python/
-        google_id = hashlib.md5(str(random.random())).hexdigest()[:16]
-        HEADERS = {'User-Agent' : 'Mozilla/5.0',
-        'Cookie' : 'GSP=ID=%s:CF=4' % google_id }
-
         url = self.scholar_url % {'query': urllib.quote(search.encode('utf-8')), 'author': urllib.quote(self.author)}
         req = urllib2.Request(url=url,
                               headers=HEADERS)
