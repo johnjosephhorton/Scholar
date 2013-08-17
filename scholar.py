@@ -1,48 +1,4 @@
 #! /usr/bin/env python
-"""
-This module provides classes for querying Google Scholar and parsing
-returned results.  It currently *only* processes the first results
-page.  It is not a recursive crawler.
-"""
-# Version: 1.3 -- $Date: 2012-02-01 16:51:16 -0800 (Wed, 01 Feb 2012) $
-#
-# ChangeLog
-# ---------
-#
-# 1.3:  Updates to reflect changes in Scholar's page rendering.
-#
-# 1.2:  Minor tweaks, mostly thanks to helpful feedback from Dan Bolser.
-#       Thanks Dan!
-#
-# 1.1:  Made author field explicit, added --author option.
-#
-# pylint: disable-msg=C0111
-#
-# Copyright 2010--2012 Christian Kreibich. All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are
-# met:
-#
-#    1. Redistributions of source code must retain the above copyright
-#       notice, this list of conditions and the following disclaimer.
-#
-#    2. Redistributions in binary form must reproduce the above
-#       copyright notice, this list of conditions and the following
-#       disclaimer in the documentation and/or other materials provided
-#       with the distribution.
-#
-# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
-# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT,
-# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-# STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-# IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
 
 import optparse
 import sys
@@ -50,6 +6,11 @@ import re
 import urllib
 import urllib2
 from BeautifulSoup import BeautifulSoup
+
+# separator to use 
+SEP = "," 
+
+# See ./notes.txt for notes on who wrote this and license.  
 
 class Article():
     """
@@ -88,7 +49,7 @@ class Article():
         fmt = '%%%ds %%s' % max_label_len
         return '\n'.join([fmt % (item[1], item[0]) for item in items])
 
-    def as_csv(self, header=False, sep='|'):
+    def as_csv(self, header=False, sep= SEP):
         # Get keys sorted in specified order:
         keys = [pair[0] for pair in \
                     sorted([(key, val[2]) for key, val in self.attrs.items()],
@@ -297,8 +258,6 @@ class ScholarQuerier():
     def add_article(self, art):
         self.articles.append(art)
 
-
-
 def txt(query, author, count):
     querier = ScholarQuerier(author=author)
     querier.query(query)
@@ -308,7 +267,7 @@ def txt(query, author, count):
     for art in articles:
         print art.as_txt() + '\n'
 
-def csv(query, author, count, header=False, sep='|'):
+def csv(query, author, count, header=False, sep= SEP):
     querier = ScholarQuerier(author=author)
     querier.query(query)
     articles = querier.articles
@@ -338,8 +297,7 @@ def titles(author):
     return titles
 
 def main():
-    usage = """scholar.py [options] <query string>
-A command-line interface to Google Scholar."""
+    usage = """scholar.py [options] <query string> A command-line interface to Google Scholar."""
 
     fmt = optparse.IndentedHelpFormatter(max_help_position=50,
                                          width=100)
