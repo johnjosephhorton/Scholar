@@ -7,6 +7,16 @@ import urllib
 import urllib2
 from BeautifulSoup import BeautifulSoup
 
+
+__author__ = 'Christian Kreibich (original)---some modifications in this repo by John Horton'
+__copyright__ = 'See notes.txt for original'
+__license__ = ''
+__maintainer__ = ''
+__email__ = 'john.joseph.horton@gmail.com'
+__status__ = 'Development'
+__version__ = '0.1'
+
+
 # separator to use 
 SEP = "," 
 
