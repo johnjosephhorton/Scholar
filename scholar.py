@@ -38,15 +38,16 @@ class Article():
     """
     def __init__(self):
         self.attrs = {'title':         [None, 'Title',          0],
-                      'url':           [None, 'URL',            1],
-                      'num_citations': [0,    'Citations',      2],
-                      'num_versions':  [0,    'Versions',       3],
-                      'url_citations': [None, 'Citations list', 4],
-                      'url_versions':  [None, 'Versions list',  5],
-                      'year':          [None, 'Year',           6], 
-                      'abstract':      [None, 'Abstract',       7], 
-                      'url_bib':       [None, 'URL to BibTeX',  8], 
-                      'bibtex_entry':  [None, 'BibTeX entry',   9]}
+                      'journal':       [None, 'Journal',        1], 
+                      'url':           [None, 'URL',            2],
+                      'num_citations': [0,    'Citations',      3],
+                      'num_versions':  [0,    'Versions',       4],
+                      'url_citations': [None, 'Citations list', 5],
+                      'url_versions':  [None, 'Versions list',  6],
+                      'year':          [None, 'Year',           7], 
+                      'abstract':      [None, 'Abstract',       8], 
+                      'url_bib':       [None, 'URL to BibTeX',  9], 
+                      'bibtex_entry':  [None, 'BibTeX entry',   10]}
 
     def __getitem__(self, key):
         if key in self.attrs:
@@ -236,6 +237,9 @@ class ScholarParser120726(ScholarParser):
                 year = self.year_re.findall(tag.find('div', {'class': 'gs_a'}).text)
                 self.article['year'] = year[0] if len(year) > 0 else None
 
+              if tag.find('div', {'class': 'gs_a'}):
+                  self.article['journal'] = tag.find('div', {'class':'gs_a'}).text.split(' - ')[1]
+
               if tag.find('div', {'class': 'gs_rs'}):
                   self.article['abstract'] = tag.find('div', {'class':'gs_rs'}).text
 
@@ -378,8 +382,8 @@ def main():
     if options.txt:
         txt(query, author=options.author, count=options.count)
 
-querier = ScholarQuerier('')
-querier.query("The Online Laboratory")
+#querier = ScholarQuerier('')
+#querier.query("The Online Laboratory")
 
 
 if __name__ == "__main__":
