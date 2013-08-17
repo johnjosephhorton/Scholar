@@ -6,7 +6,9 @@ import re
 import urllib
 import urllib2
 from BeautifulSoup import BeautifulSoup
-import csv as csv_module
+import csv as csv_module #namespace conflict b/c this has a 'csv' function 
+import hashlib 
+import random 
 
 __author__ = 'Christian Kreibich (original)---some modifications in this repo by John Horton'
 __copyright__ = 'See notes.txt for original'
@@ -35,7 +37,8 @@ class Article():
                       'url_citations': [None, 'Citations list', 4],
                       'url_versions':  [None, 'Versions list',  5],
                       'year':          [None, 'Year',           6], 
-                      'abstract':      [None, 'Abstract',       7]}
+                      'abstract':      [None, 'Abstract',       7], 
+                      'url_bib':       [None, 'URL to Bibtext', 8]}
 
     def __getitem__(self, key):
         if key in self.attrs:
@@ -149,6 +152,10 @@ class ScholarParser():
                         self._as_int(tag.string.split()[1])
                 self.article['url_versions'] = self._path2url(tag.get('href'))
 
+            if tag.get('href').startswith('/scholar.bib'):
+                self.article['url_bib'] = self._path2url(tag.get('href'))
+
+
     @staticmethod
     def _tag_checker(tag):
         if tag.name == 'div' and tag.get('class') == 'gs_r':
@@ -217,12 +224,15 @@ class ScholarParser120726(ScholarParser):
                 year = self.year_re.findall(tag.find('div', {'class': 'gs_a'}).text)
                 self.article['year'] = year[0] if len(year) > 0 else None
 
-              # experimental - grab abstract 
               if tag.find('div', {'class': 'gs_rs'}):
                   self.article['abstract'] = tag.find('div', {'class':'gs_rs'}).text
 
               if tag.find('div', {'class': 'gs_fl'}):
                 self._parse_links(tag.find('div', {'class': 'gs_fl'}))
+                
+              #if tag.fine('div', {}):
+              
+
 
         if self.article['title']:
             self.handle_article(self.article)
@@ -266,9 +276,15 @@ class ScholarQuerier():
         This method initiates a query with subsequent parsing of the
         response.
         """
+        # fake google id (looks like it is a 16 elements hex)
+        # Adapted from http://blog.venthur.de/index.php/2010/01/query-google-scholar-using-python/
+        google_id = hashlib.md5(str(random.random())).hexdigest()[:16]
+        HEADERS = {'User-Agent' : 'Mozilla/5.0',
+        'Cookie' : 'GSP=ID=%s:CF=4' % google_id }
+
         url = self.scholar_url % {'query': urllib.quote(search.encode('utf-8')), 'author': urllib.quote(self.author)}
         req = urllib2.Request(url=url,
-                              headers={'User-Agent': self.UA})
+                              headers=HEADERS)
         hdl = urllib2.urlopen(req)
         html = hdl.read()
         self.parse(html)
@@ -367,6 +383,24 @@ if __name__ == "__main__":
 
 
 
+# # fake google id (looks like it is a 16 elements hex)
+
+
+# def query(searchstr):
+#     """Return a list of bibtex items."""
+#     searchstr = '/scholar?q='+urllib2.quote(searchstr)
+#     url = GOOGLE_SCHOLAR_URL + searchstr
+#     request = urllib2.Request(url, headers=HEADERS)
+#     response = urllib2.urlopen(request)
+#     html = response.read()
+#     # grab the bibtex links
 
 
 
+
+
+# Raw query
+# http://scholar.google.com/scholar?hl=en&q=Online+Laboratory&btnG=&as_sdt=1%2C5&as_sdtp=
+# http://scholar.google.com/scholar?      q=Online+Laboratory&btnG=&hl=en&as_sdt=0%2C5
+
+# What's different: as_sdt=0%2C5
