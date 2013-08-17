@@ -6,7 +6,7 @@ import re
 import urllib
 import urllib2
 from BeautifulSoup import BeautifulSoup
-
+import csv as csv_module
 
 __author__ = 'Christian Kreibich (original)---some modifications in this repo by John Horton'
 __copyright__ = 'See notes.txt for original'
@@ -69,6 +69,16 @@ class Article():
             res.append(sep.join(keys))
         res.append(sep.join([str(self.attrs[key][0]) for key in keys]))
         return '\n'.join(res)
+
+    def as_list(self):
+        # Get keys sorted in specified order:
+        keys = [pair[0] for pair in \
+                    sorted([(key, val[2]) for key, val in self.attrs.items()],
+                           key=lambda pair: pair[1])]
+        res = []
+        res.append(keys)
+        res.append([str(self.attrs[key][0]) for key in keys])
+        return res
 
 class ScholarParser():
     """
@@ -277,16 +287,36 @@ def txt(query, author, count):
     for art in articles:
         print art.as_txt() + '\n'
 
-def csv(query, author, count, header=False, sep= SEP):
+# def csv(query, author, count, header=False, sep= SEP):
+#     querier = ScholarQuerier(author=author)
+#     querier.query(query)
+#     articles = querier.articles
+#     if count > 0:
+#         articles = articles[:count]
+#     for art in articles:
+#         result = art.as_csv(header=header, sep=sep)
+#         print result.encode('utf-8')
+#         header = False
+
+
+# import csv
+# with open('some.csv', 'wb') as f:
+#     writer = csv.writer(f)
+#     writer.writerows(someiterable)
+
+def csv(query, author, count, header=False, sep= SEP, file_name = None):
+    if file_name is None: 
+        file_name = "sample.csv"
     querier = ScholarQuerier(author=author)
     querier.query(query)
     articles = querier.articles
     if count > 0:
         articles = articles[:count]
-    for art in articles:
-        result = art.as_csv(header=header, sep=sep)
-        print result.encode('utf-8')
-        header = False
+    header_line = articles[0].as_list()[0]
+    results = [y.as_list()[1] for y in articles]
+    with open(file_name, "wb") as csvfile: 
+        g = csv_module.writer(csvfile)
+        g.writerows([header_line] + results)
 
 def url(title, author):
     querier = ScholarQuerier(author=author)
@@ -340,3 +370,12 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+# Testing 
+# >>> querier = ScholarQuerier('')
+# >>> querier.query("Labor Economics of Paid Crowdsourcing")
