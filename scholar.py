@@ -34,7 +34,8 @@ class Article():
                       'num_versions':  [0,    'Versions',       3],
                       'url_citations': [None, 'Citations list', 4],
                       'url_versions':  [None, 'Versions list',  5],
-                      'year':          [None, 'Year',           6]}
+                      'year':          [None, 'Year',           6], 
+                      'abstract':      [None, 'Abstract',       7]}
 
     def __getitem__(self, key):
         if key in self.attrs:
@@ -216,6 +217,10 @@ class ScholarParser120726(ScholarParser):
                 year = self.year_re.findall(tag.find('div', {'class': 'gs_a'}).text)
                 self.article['year'] = year[0] if len(year) > 0 else None
 
+              # experimental - grab abstract 
+              if tag.find('div', {'class': 'gs_rs'}):
+                  self.article['abstract'] = tag.find('div', {'class':'gs_rs'}).text
+
               if tag.find('div', {'class': 'gs_fl'}):
                 self._parse_links(tag.find('div', {'class': 'gs_fl'}))
 
@@ -287,23 +292,6 @@ def txt(query, author, count):
     for art in articles:
         print art.as_txt() + '\n'
 
-# def csv(query, author, count, header=False, sep= SEP):
-#     querier = ScholarQuerier(author=author)
-#     querier.query(query)
-#     articles = querier.articles
-#     if count > 0:
-#         articles = articles[:count]
-#     for art in articles:
-#         result = art.as_csv(header=header, sep=sep)
-#         print result.encode('utf-8')
-#         header = False
-
-
-# import csv
-# with open('some.csv', 'wb') as f:
-#     writer = csv.writer(f)
-#     writer.writerows(someiterable)
-
 def csv(query, author, count, header=False, sep= SEP, file_name = None):
     if file_name is None: 
         file_name = "sample.csv"
@@ -368,14 +356,17 @@ def main():
     if options.txt:
         txt(query, author=options.author, count=options.count)
 
+querier = ScholarQuerier('')
+querier.query("The Online Laboratory")
+
+
 if __name__ == "__main__":
     main()
+    
 
 
 
 
 
 
-# Testing 
-# >>> querier = ScholarQuerier('')
-# >>> querier.query("Labor Economics of Paid Crowdsourcing")
+
